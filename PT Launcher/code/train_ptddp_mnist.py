@@ -166,6 +166,8 @@ def main():
                         'the MNIST dataset')
 
     args = parser.parse_args()
+    print('All environment variables are:')
+    print(os.environ)
     args.world_size = int(os.environ['WORLD_SIZE'])
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
