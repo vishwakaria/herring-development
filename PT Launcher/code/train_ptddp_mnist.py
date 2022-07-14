@@ -21,7 +21,7 @@ from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
-#import smdistributed.dataparallel.torch.torch_smddp
+import smdistributed.dataparallel.torch.torch_smddp
 from torch.distributed import Backend
 '''
 For EC2 conda env, in controller node run 'source /shared/pytorch_env/bin/activate', then launch the training using:
@@ -166,14 +166,12 @@ def main():
                         'the MNIST dataset')
 
     args = parser.parse_args()
-    print('All environment variables are:')
-    print(os.environ)
     args.world_size = int(os.environ['WORLD_SIZE'])
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
     data_path = args.data_path
-    dist.init_process_group(backend='nccl')
+    dist.init_process_group(backend='smddp')
     rank = dist.get_rank()
     local_rank = args.local_rank
     torch.cuda.set_device(local_rank)
@@ -182,7 +180,9 @@ def main():
         print('Hello from rank', rank, 'of local_rank', local_rank,
               'in world size of', args.world_size)
     if not torch.cuda.is_available():
+        raise Exception(
             "Must run smdistributed.dataparallel MNIST example on CUDA-capable devices."
+        )
     torch.manual_seed(args.seed)
     device = torch.device(f'cuda:{local_rank}')
     # select a single rank per node to download data
