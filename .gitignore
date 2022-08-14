@@ -1,0 +1,5 @@
+*.ipynb_checkpoints*
+PT Launcher/mnist/
+PT Launcher/resnet/
+PT Launcher/roberta/
+PT Launcher/sagemaker-2.101.6.dev0-py2.py3-none-any.whl

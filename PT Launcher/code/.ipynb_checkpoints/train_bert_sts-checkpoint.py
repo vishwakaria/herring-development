@@ -6,7 +6,7 @@ python training_nli.py
 OR
 python training_nli.py pretrained_transformer_model_name
 """
-from torch.utils.data import DataLoader
+
 import math
 from sentence_transformers import SentenceTransformer,  LoggingHandler, losses, models, util
 from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator
@@ -17,6 +17,12 @@ import sys
 import os
 import gzip
 import csv
+import torch
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DataLoader
+
+dist.init_process_group(backend='nccl')
 
 #### Just some code to print debug information to stdout
 logging.basicConfig(format='%(asctime)s - %(message)s',
@@ -24,14 +30,17 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
                     level=logging.INFO,
                     handlers=[LoggingHandler()])
 #### /print debug information to stdout
+world_size = int(os.environ['WORLD_SIZE'])
+rank = dist.get_rank()
+local_rank = int(os.getenv('LOCAL_RANK', -1))
+device = torch.device(f'cuda:{local_rank}')
 
+if is_first_local_rank:
+    #Check if dataset exsist. If not, download and extract  it
+    sts_dataset_path = 'datasets/stsbenchmark.tsv.gz'
 
-
-#Check if dataset exsist. If not, download and extract  it
-sts_dataset_path = 'datasets/stsbenchmark.tsv.gz'
-
-if not os.path.exists(sts_dataset_path):
-    util.http_get('https://sbert.net/datasets/stsbenchmark.tsv.gz', sts_dataset_path)
+    if not os.path.exists(sts_dataset_path):
+        util.http_get('https://sbert.net/datasets/stsbenchmark.tsv.gz', sts_dataset_path)
 
 
 

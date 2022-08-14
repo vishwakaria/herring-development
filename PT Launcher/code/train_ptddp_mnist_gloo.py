@@ -167,12 +167,12 @@ def main():
 
     args = parser.parse_args()
     args.world_size = int(os.environ['WORLD_SIZE'])
-    print('world_size is ', args.world_size)
     args.lr = 1.0
-    args.batch_size //= args.world_size // 1
-    args.batch_size = max(args.batch_size, 1)
+    #args.batch_size //= args.world_size // 8
+    #args.batch_size = max(args.batch_size, 1)
+    args.batch_size = 1
     data_path = args.data_path
-    dist.init_process_group(backend='nccl')
+    dist.init_process_group(backend='gloo')
     rank = dist.get_rank()
     local_rank = args.local_rank
     torch.cuda.set_device(local_rank)
